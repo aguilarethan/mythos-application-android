@@ -7,8 +7,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 object NetworkModule {
-    const val DOTNET_BASE_URL = "http://192.168.100.5:5000"
-    const val NODE_BASE_URL = "http://192.168.100.5:3001"
+    const val DOTNET_BASE_URL = "http://192.168.100.5:5000/api"
+    const val NODE_BASE_URL = "http://192.168.100.5:3001/api"
 
     val dotnetClient = HttpClient(CIO) {
         install(ContentNegotiation) {

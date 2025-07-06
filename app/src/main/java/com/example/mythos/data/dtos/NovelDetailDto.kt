@@ -6,9 +6,10 @@ import kotlinx.serialization.Serializable
 data class NovelDetailDto(
     val id: String,
     val writerAccountId: String,
+    val writerName: String,
     val title: String,
     val description: String,
-    val genres: List<List<String>>,
+    val genres: List<String>,
     val tags: List<String>,
     val views: Int,
     val isPublic: Boolean,

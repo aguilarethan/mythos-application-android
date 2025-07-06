@@ -1,5 +1,6 @@
 package com.example.mythos.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,7 +31,7 @@ fun NovelCarousel(
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(novels) { novel ->
             Card(
@@ -39,7 +40,7 @@ fun NovelCarousel(
                     .width(350.dp)
                     .height(180.dp)
             ) {
-                Row (modifier = Modifier.fillMaxSize()) {
+                Row (modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primary)) {
                     AsyncImage(
                         model = novel.coverImageUrl,
                         contentDescription = novel.title,
@@ -55,12 +56,14 @@ fun NovelCarousel(
                         Text(
                             text = novel.title,
                             style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.secondary,
                             maxLines = 1
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = novel.description.take(150) + "...",
+                            text = (novel.description ?: "").take(150) + "...",
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary,
                             maxLines = 4
                         )
                     }

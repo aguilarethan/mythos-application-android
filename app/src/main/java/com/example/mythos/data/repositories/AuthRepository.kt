@@ -13,7 +13,7 @@ class AuthRepository {
     private val dotnetClient = NetworkModule.dotnetClient
 
     suspend fun login(username: String, password: String): TokenResponseDto {
-        val response: HttpResponse = dotnetClient.post("${NetworkModule.DOTNET_BASE_URL}/api/auth/login-raw") {
+        val response: HttpResponse = dotnetClient.post("${NetworkModule.DOTNET_BASE_URL}/auth/login-raw") {
             contentType(ContentType.Application.Json)
             setBody(
                 mapOf(
@@ -32,7 +32,7 @@ class AuthRepository {
 
     suspend fun register(username: String, password: String, email: String) : String {
         try {
-            val response: HttpResponse = dotnetClient.post("${NetworkModule.DOTNET_BASE_URL}/api/auth/register") {
+            val response: HttpResponse = dotnetClient.post("${NetworkModule.DOTNET_BASE_URL}/auth/register") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
                 setBody(

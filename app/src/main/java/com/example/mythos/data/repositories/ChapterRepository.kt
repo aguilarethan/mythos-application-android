@@ -12,7 +12,7 @@ class ChapterRepository {
     private val nodeClient = NetworkModule.nodeClient
 
     suspend fun getChaptersByNovelId(novelId: String): List<ChapterDto> {
-        val response: HttpResponse = nodeClient.get("${NetworkModule.NODE_BASE_URL}/api/chapters/novel/${novelId}") {
+        val response: HttpResponse = nodeClient.get("${NetworkModule.NODE_BASE_URL}/chapters/novel/${novelId}") {
             accept(ContentType.Application.Json)
         }
 
@@ -24,7 +24,7 @@ class ChapterRepository {
     }
 
     suspend fun getChapterById(chapterId: String): ChapterDto {
-        val response: HttpResponse = nodeClient.get("${NetworkModule.NODE_BASE_URL}/api/chapters/${chapterId}") {
+        val response: HttpResponse = nodeClient.get("${NetworkModule.NODE_BASE_URL}/chapters/${chapterId}") {
             accept(ContentType.Application.Json)
         }
 

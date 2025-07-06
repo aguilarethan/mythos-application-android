@@ -57,6 +57,10 @@ fun NovelScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
+                        "Autor: ${novel.writerName}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
                         "Estado: ${novel.status}",
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -96,7 +100,7 @@ fun NovelScreen(
 
                         Text("Géneros", style = MaterialTheme.typography.titleMedium)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(novel.genres.flatten()) { genre ->
+                            items(novel.genres) { genre ->
                                 AssistChip(onClick = {}, label = { Text(genre) })
                             }
                         }

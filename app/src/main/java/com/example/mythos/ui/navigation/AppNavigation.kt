@@ -55,16 +55,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         }
 
-        composable(Routes.HOME) {
-            val homeViewModel: HomeViewModel = viewModel()
-            HomeScreen(
-                viewModel = homeViewModel,
-                onNovelClick = { novelId ->
-                    navController.navigate(Routes.novelWithId(novelId))
-                }
-            )
-        }
-
         composable("novel/{novelId}") { backStackEntry ->
             val novelViewModel: NovelViewModel = viewModel()
             val novelId = backStackEntry.arguments?.getString("novelId") ?: return@composable
@@ -86,7 +76,26 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         }
 
+        composable(Routes.HOME) {
+            MainScreenContainer(
+                navController = navController,
+                currentRoute = Routes.HOME
+            )
+        }
 
+        composable(Routes.SEARCH) {
+            MainScreenContainer(
+                navController = navController,
+                currentRoute = Routes.SEARCH
+            )
+        }
+
+        composable(Routes.PROFILE) {
+            MainScreenContainer(
+                navController = navController,
+                currentRoute = Routes.PROFILE
+            )
+        }
 
     }
 }
