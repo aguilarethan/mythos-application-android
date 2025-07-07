@@ -8,6 +8,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mythos.ui.screens.home.HomeScreen
 import com.example.mythos.ui.screens.home.HomeViewModel
+import com.example.mythos.ui.screens.profile.ProfileScreen
+import com.example.mythos.ui.screens.profile.ProfileViewModel
 
 
 /**
@@ -45,6 +47,7 @@ fun MainScreenContainer(
                         }
                     )
                 }
+
                 /*Routes.SEARCH -> {
                     // Aquí puedes inyectar el ViewModel cuando lo tengas
                     // val searchViewModel: SearchViewModel = viewModel()
@@ -54,19 +57,20 @@ fun MainScreenContainer(
                             navController.navigate(Routes.novelWithId(novelId))
                         }
                     )
-                }
+                }*/
+
                 Routes.PROFILE -> {
-                    // Aquí puedes inyectar el ViewModel cuando lo tengas
-                    // val profileViewModel: ProfileViewModel = viewModel()
+                    val profileViewModel: ProfileViewModel = viewModel()
                     ProfileScreen(
-                        // viewModel = profileViewModel,
-                        onLogout = {
-                            navController.navigate(Routes.LOGIN) {
-                                popUpTo(Routes.HOME) { inclusive = true }
-                            }
+                        viewModel = profileViewModel,
+                        onNavigateToBecomeAuthor = {
+                            navController.navigate(Routes.BECOME_WRITER)
+                        },
+                        onNavigateToMyNovels = { userId ->
+                            navController.navigate(Routes.myNovelsWithId(userId))
                         }
                     )
-                }*/
+                }
             }
         }
     }

@@ -1,11 +1,15 @@
 package com.example.mythos.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mythos.ui.screens.becomewriter.BecomeWriterScreen
+import com.example.mythos.ui.screens.becomewriter.BecomeWriterViewModel
 import com.example.mythos.ui.screens.login.LoginScreen
 import com.example.mythos.ui.screens.login.LoginViewModel
 import com.example.mythos.ui.screens.register.RegisterScreen
@@ -20,7 +24,8 @@ import com.example.mythos.ui.screens.chapter.ChapterViewModel
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
-    val navController = rememberNavController();
+    val navController = rememberNavController()
+    val context = LocalContext.current
 
     NavHost(navController = navController, startDestination = Routes.LOGIN, modifier = modifier) {
         composable(Routes.LOGIN) {
@@ -96,6 +101,21 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 currentRoute = Routes.PROFILE
             )
         }
+
+        composable(Routes.BECOME_WRITER) {
+            val becomeWriterViewModel: BecomeWriterViewModel = viewModel()
+            BecomeWriterScreen(
+                viewModel = becomeWriterViewModel,
+                onBackToProfile = {
+                    navController.popBackStack()
+                },
+                onSuccess = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+
 
     }
 }

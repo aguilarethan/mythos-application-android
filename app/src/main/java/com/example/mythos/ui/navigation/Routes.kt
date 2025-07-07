@@ -6,7 +6,9 @@ object Routes {
     const val REGISTER = "register"
     const val SEARCH = "search"
     const val PROFILE = "profile"
+    const val BECOME_WRITER = "profile/becomewriter"
 
+    fun myNovelsWithId(id: String) = "profile/mynovels/$id"
     fun novelWithId(id: String) = "novel/$id"
     fun chapterWithId(id: String) = "chapter/$id"
 }

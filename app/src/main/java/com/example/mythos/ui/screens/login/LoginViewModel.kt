@@ -1,7 +1,10 @@
 package com.example.mythos.ui.screens.login
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mythos.data.managers.AccountManager
+import com.example.mythos.data.repositories.AccountRepository
 import com.example.mythos.data.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +26,13 @@ class LoginViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+
+    init {
+        _isLoggedIn.value = authRepository.isLoggedIn()
+    }
+
     fun onUsernameChanged(newUsername: String) {
         _username.value = newUsername
     }
@@ -40,13 +50,15 @@ class LoginViewModel : ViewModel() {
                     username = _username.value,
                     password = _password.value
                 )
-
-                println(result.accessToken)
-
-                onSuccess()
+                _isLoggedIn.value = true
+                val accountResult = AccountManager.loadAccount()
+                if (accountResult.isSuccess) {
+                    onSuccess()
+                } else {
+                    println("\"Login exitoso pero no se pudo cargar la cuenta")
+                }
 
             } catch (e: Exception) {
-                println("Hubo un error despues de devolver el token")
                 _errorMessage.value = e.message ?: "Error desconocido"
             } finally {
                 _isLoading.value = false
