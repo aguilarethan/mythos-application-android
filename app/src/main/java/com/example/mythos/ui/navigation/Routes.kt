@@ -12,4 +12,5 @@ object Routes {
     fun myNovelsWithId(id: String) = "profile/mynovels/$id"
     fun novelWithId(id: String) = "novel/$id"
     fun chapterWithId(id: String) = "chapter/$id"
+    fun purchaseChapterWithId(id: String, writerId: String) = "purchase/$id/$writerId"
 }

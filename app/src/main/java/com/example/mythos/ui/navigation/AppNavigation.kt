@@ -11,6 +11,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mythos.data.managers.AccountManager
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterScreen
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterViewModel
+import com.example.mythos.ui.screens.buyChapter.PurchaseChapterScreen
+import com.example.mythos.ui.screens.buyChapter.PurchaseChapterViewModel
 import com.example.mythos.ui.screens.login.LoginScreen
 import com.example.mythos.ui.screens.login.LoginViewModel
 import com.example.mythos.ui.screens.register.RegisterScreen
@@ -70,6 +72,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             NovelScreen(
                 viewModel = novelViewModel,
                 novelId = novelId,
+                navController = navController,
                 onChapterClick = { chapterId ->
                     navController.navigate(Routes.chapterWithId(chapterId))
                 }
@@ -83,6 +86,20 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 viewModel = chapterViewModel,
                 chapterId = chapterId
             )
+        }
+
+        composable("purchase/{chapterId}/{writerId}") { backStackEntry ->
+            val chapterId = backStackEntry.arguments?.getString("chapterId") ?: return@composable
+            val writerId = backStackEntry.arguments?.getString("writerId") ?: return@composable
+            val purchaseChapterViewModel: PurchaseChapterViewModel = viewModel()
+
+            PurchaseChapterScreen(
+                chapterId = chapterId,
+                writerId = writerId,
+                viewModel = purchaseChapterViewModel,
+                onBack = {
+                navController.popBackStack()
+            })
         }
 
         composable(Routes.HOME) {

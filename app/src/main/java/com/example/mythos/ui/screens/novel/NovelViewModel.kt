@@ -21,12 +21,16 @@ class NovelViewModel : ViewModel() {
     private val _chapters = MutableStateFlow<List<ChapterDto>>(emptyList())
     val chapters: StateFlow<List<ChapterDto>> = _chapters
 
+    private val _purchasedChapters = MutableStateFlow<List<String>>(emptyList())
+    val purchasedChapters: StateFlow<List<String>> = _purchasedChapters
+
     fun loadNovelById(id: String) {
         viewModelScope.launch {
             try {
                 val result = novelRepository.getNovelById(id)
                 _novel.value = result
                 loadChaptersByNovelId(id)
+                loadPurchasedChapters()
             } catch (e: Exception) {
                 e.printStackTrace()
                 _novel.value = null
@@ -41,6 +45,16 @@ class NovelViewModel : ViewModel() {
         } catch (e: Exception) {
             e.printStackTrace()
             _chapters.value = emptyList()
+        }
+    }
+
+    private suspend fun loadPurchasedChapters() {
+        try {
+            val result = chapterRepository.getPurchasedChapters()
+            _purchasedChapters.value = result
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _purchasedChapters.value = emptyList()
         }
     }
 }
