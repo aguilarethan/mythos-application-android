@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mythos.data.managers.AccountManager
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterScreen
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterViewModel
 import com.example.mythos.ui.screens.login.LoginScreen
@@ -20,12 +21,15 @@ import com.example.mythos.ui.screens.novel.NovelScreen
 import com.example.mythos.ui.screens.novel.NovelViewModel
 import com.example.mythos.ui.screens.chapter.ChapterScreen
 import com.example.mythos.ui.screens.chapter.ChapterViewModel
+import com.example.mythos.ui.screens.profile.mynovels.MyNovelsScreen
+import com.example.mythos.ui.screens.profile.mynovels.MyNovelsViewModel
+import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormScreen
+import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormViewModel
 
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val context = LocalContext.current
 
     NavHost(navController = navController, startDestination = Routes.LOGIN, modifier = modifier) {
         composable(Routes.LOGIN) {
@@ -112,6 +116,29 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 onSuccess = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable("profile/mynovels/{writerAccountId}") { backStackEntry ->
+            val writerAccountId = backStackEntry.arguments?.getString("writerAccountId") ?: return@composable
+            val myNovelsViewModel: MyNovelsViewModel = viewModel()
+            MyNovelsScreen(
+                viewModel = myNovelsViewModel,
+                writerAccountId = writerAccountId,
+                onNovelClick = { novelId ->
+                    navController.navigate(Routes.novelWithId(novelId))
+                },
+                onNavigateToNovelForm = {
+                    navController.navigate(Routes.NOVEL_FORM)
+                }
+            )
+        }
+
+        composable(Routes.NOVEL_FORM) {
+            val novelFormViewModel: NovelFormViewModel = viewModel()
+            NovelFormScreen(
+                viewModel = novelFormViewModel,
+
             )
         }
 

@@ -28,7 +28,10 @@ fun HomeScreen(
         viewModel.loadMostViewedNovels()
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(0.dp)
+    ) {
         item {
             Text(
                 text = "Descubre lo más reciente",
