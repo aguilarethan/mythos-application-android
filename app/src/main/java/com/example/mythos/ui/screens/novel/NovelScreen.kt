@@ -14,18 +14,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mythos.data.dtos.NovelDetailDto
 import com.example.mythos.ui.components.ChapterCard
+import com.example.mythos.ui.components.ChapterStatus
+import com.example.mythos.ui.navigation.Routes
 
 @Composable
 fun NovelScreen(
     viewModel: NovelViewModel,
     novelId: String,
+    navController: NavController,
     onChapterClick: (String) -> Unit
 ) {
     val novel by viewModel.novel.collectAsState()
     val chapters by viewModel.chapters.collectAsState()
+    val purchased = viewModel.purchasedChapters.collectAsState().value
 
     var selectedTabIndex by remember { mutableStateOf(0) }
 
@@ -130,11 +135,23 @@ fun NovelScreen(
                     } else {
                         Column {
                             chapters.forEach { chapter ->
+
+                                val status = when {
+                                    chapter.isFree -> ChapterStatus.FREE
+                                    purchased.contains(chapter.id) -> ChapterStatus.PURCHASED
+                                    else -> ChapterStatus.PAID
+                                }
+
                                 ChapterCard(
                                     chapterNumber = chapter.chapterNumber,
                                     chapterTitle = chapter.title,
+                                    chapterStatus = status,
                                     onClick = {
-                                        onChapterClick(chapter.id)
+                                        when (status) {
+                                            ChapterStatus.FREE, ChapterStatus.PURCHASED -> onChapterClick(chapter.id)
+                                            ChapterStatus.PAID -> navController.navigate(Routes.purchaseChapterWithId(chapter.id, novel.writerAccountId))
+                                        }
+                                        //onChapterClick(chapter.id)
                                     }
                                 )
                             }
