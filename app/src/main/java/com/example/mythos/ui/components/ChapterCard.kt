@@ -2,8 +2,6 @@ package com.example.mythos.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,47 +28,38 @@ fun ChapterCard(
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
+            Text(
+                text = "Capítulo $chapterNumber",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Capítulo $chapterNumber",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = chapterTitle,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)
                 )
-                ChapterStatusChip(status = chapterStatus)
+                Text(
+                    text = getChapterStatusLabel(chapterStatus),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = chapterTitle,
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }
 
 @Composable
-fun ChapterStatusChip(status: ChapterStatus) {
-    val label = when (status) {
+fun getChapterStatusLabel(status: ChapterStatus): String {
+    return when (status) {
         ChapterStatus.FREE -> "Gratis"
         ChapterStatus.PAID -> "De pago"
         ChapterStatus.PURCHASED -> "Comprado"
     }
-
-    val color = when (status) {
-        ChapterStatus.FREE -> MaterialTheme.colorScheme.primary
-        ChapterStatus.PAID -> MaterialTheme.colorScheme.secondary
-        ChapterStatus.PURCHASED -> MaterialTheme.colorScheme.error
-    }
-
-    AssistChip(
-        onClick = {},
-        label = { Text(label)},
-        colors = AssistChipDefaults.assistChipColors(containerColor = color)
-    )
 }
 
 enum class ChapterStatus {

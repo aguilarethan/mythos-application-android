@@ -27,18 +27,14 @@ fun PurchaseChapterScreen(
     writerId: String,
     viewModel: PurchaseChapterViewModel,
     onBack: () -> Unit,
-
 ) {
     val chapter by viewModel.chapter.collectAsState()
-
     val isProcessing by viewModel.isProcessing.collectAsState()
     val purchaseMessage by viewModel.purchaseMessage.collectAsState()
     val purchaseSuccess by viewModel.purchaseSuccess.collectAsState()
 
     LaunchedEffect(purchaseSuccess) {
-        if (purchaseSuccess) {
-            onBack()
-        }
+        if (purchaseSuccess) onBack()
     }
 
     LaunchedEffect(chapterId) {
@@ -47,142 +43,145 @@ fun PurchaseChapterScreen(
 
     val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     val outputFormat = SimpleDateFormat("dd 'de' MMMM 'de' yyyy", Locale("es", "MX"))
-
-    val rawDate = chapter?.createdAt // debe ser tipo String como: "2025-07-07T00:00:00"
     val formattedDate = try {
-        val date = inputFormat.parse(rawDate ?: "")
+        val date = inputFormat.parse(chapter?.createdAt ?: "")
         outputFormat.format(date ?: Date())
     } catch (e: Exception) {
         "Fecha desconocida"
     }
 
-
-
-    Card(
+    Box(
         modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(6.dp)
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Encabezado con ícono y título
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Capítulo bloqueado",
-                    tint = Color(0xFFFFA000), // Amarillo
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    chapter?.let { Text(text = it.title, style = MaterialTheme.typography.titleLarge) }
-                    Text(
-                        text = "Capítulo ${chapter?.chapterNumber}",
-                        style = MaterialTheme.typography.labelSmall
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(6.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                // Encabezado
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
                     )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = chapter?.title.orEmpty(),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = "Capítulo ${chapter?.chapterNumber}",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Alerta de capítulo premium
-            Surface(
+                // Mensaje simple de capítulo premium
+                Text(
+                    text = "Este capítulo requiere compra para poder ser leído",
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 1.dp
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("📌 Capítulo Premium", fontWeight = FontWeight.Bold)
-                    Text("Este capítulo requiere compra para poder ser leído", style = MaterialTheme.typography.labelSmall)
-                }
-            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Precio + Fecha
-            Surface(
-                tonalElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+                // Precio y fecha
                 Row(
                     modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.MonetizationOn,
                             contentDescription = null,
-                            tint = Color(0xFFFFA000),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("${chapter?.priceMythras} Mythras", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "${chapter?.priceMythras} Mythras",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("Publicado ${formattedDate}") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Schedule,
-                                contentDescription = null
-                            )
-                        },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = Color.LightGray)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Publicado $formattedDate",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Botón de compra
+                Button(
+                    onClick = { viewModel.purchaseChapter(writerId) },
+                    enabled = !isProcessing,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isProcessing) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text("Procesando...")
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Comprar capítulo", color = MaterialTheme.colorScheme.secondary)
+                    }
+                }
+
+                // Mensaje de error
+                if (!purchaseSuccess && !purchaseMessage.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = purchaseMessage ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón de compra
-            Button(
-                onClick = { viewModel.purchaseChapter(writerId) },
-                enabled = !isProcessing,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isProcessing) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(end = 8.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Text("Procesando...")
-                } else {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Comprar capítulo")
-                }
-            }
-
-            if (!purchaseSuccess && !purchaseMessage.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = purchaseMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = "Una vez comprado, tendrás acceso permanente a este capítulo",
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Divider()
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Una vez comprado, tendrás acceso permanente a este capítulo",
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

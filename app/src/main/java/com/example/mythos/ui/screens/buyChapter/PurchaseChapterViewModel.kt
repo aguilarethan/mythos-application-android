@@ -59,7 +59,7 @@ class PurchaseChapterViewModel : ViewModel() {
                 _purchaseMessage.value = result.message
                 _purchaseSuccess.value = result.success
             } catch (e: Exception) {
-                _purchaseMessage.value = "Error: ${e.message}"
+                _purchaseMessage.value = "No existen fondos suficientes para comprar el capítulo"
             } finally {
                 _isProcessing.value = false
             }

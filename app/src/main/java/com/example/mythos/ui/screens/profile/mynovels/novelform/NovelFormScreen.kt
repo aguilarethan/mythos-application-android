@@ -47,7 +47,7 @@ fun NovelFormScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     var isSaveInProgress by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
