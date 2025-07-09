@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mythos.data.managers.AccountManager
+import com.example.mythos.data.managers.ChapterManager
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterScreen
 import com.example.mythos.ui.screens.becomewriter.BecomeWriterViewModel
 import com.example.mythos.ui.screens.buyChapter.PurchaseChapterScreen
@@ -23,6 +24,8 @@ import com.example.mythos.ui.screens.novel.NovelScreen
 import com.example.mythos.ui.screens.novel.NovelViewModel
 import com.example.mythos.ui.screens.chapter.ChapterScreen
 import com.example.mythos.ui.screens.chapter.ChapterViewModel
+import com.example.mythos.ui.screens.chapterform.ChapterFormScreen
+import com.example.mythos.ui.screens.chapterform.ChapterFormViewModel
 import com.example.mythos.ui.screens.profile.mynovels.MyNovelsScreen
 import com.example.mythos.ui.screens.profile.mynovels.MyNovelsViewModel
 import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormScreen
@@ -155,7 +158,19 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             val novelFormViewModel: NovelFormViewModel = viewModel()
             NovelFormScreen(
                 viewModel = novelFormViewModel,
+                onSaveSuccess = {
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    navController.popBackStack()
+                }
+            )
+        }
 
+        composable(Routes.CHAPTER_FORM) {
+            val chapterFormViewModel: ChapterFormViewModel = viewModel()
+            ChapterFormScreen(
+                viewModel = chapterFormViewModel,
             )
         }
 

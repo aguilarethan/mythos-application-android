@@ -1,6 +1,7 @@
 package com.example.mythos.data.repositories
 
 import com.example.mythos.data.dtos.ChapterDto
+import com.example.mythos.data.dtos.ChapterFormDto
 import com.example.mythos.data.dtos.PurchaseChapterRequest
 import com.example.mythos.data.dtos.PurchaseResultDto
 import com.example.mythos.data.managers.TokenManager
@@ -80,6 +81,26 @@ class ChapterRepository {
         }
 
         return response.body() ?: PurchaseResultDto(false, "Respuesta nula")
+    }
+
+    suspend fun saveChapter(request: ChapterFormDto): ChapterDto {
+        println(request)
+        val accessToken = TokenManager.getAccessToken()
+            ?: throw Exception("No hay token de acceso disponible")
+
+        val response: HttpResponse = nodeClient.post("${NetworkModule.NODE_BASE_URL}/chapters/") {
+            contentType(ContentType.Application.Json)
+            headers {
+                append("Authorization", "Bearer $accessToken")
+            }
+            setBody(request)
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("Error al guardar el capitulo: ${response.status}")
+        }
+
+        return response.body()
     }
 
 

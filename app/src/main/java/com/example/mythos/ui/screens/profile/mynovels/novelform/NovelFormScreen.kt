@@ -1,6 +1,7 @@
 package com.example.mythos.ui.screens.profile.mynovels.novelform
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -20,11 +21,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mythos.data.dtos.NovelFormDto
 import com.example.mythos.data.managers.AccountManager
+import com.example.mythos.data.managers.NovelManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,9 +43,33 @@ fun NovelFormScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val availableGenres by viewModel.availableGenres.collectAsState()
     val availableTags by viewModel.availableTags.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    
+    var isSaveInProgress by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        NovelManager.currentNovelForEditing?.let { novel ->
+            viewModel.initializeForEditing(novel)
+        }
+    }
+
+    // Limpiar el manager cuando se destruya el composable
+    DisposableEffect(Unit) {
+        onDispose {
+            NovelManager.clearNovelForEditing()
+        }
+    }
+
+    // Mostrar mensaje de error si existe
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            // Aquí puedes mostrar un Toast o Snackbar
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     // Launcher para seleccionar imagen
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -54,11 +81,6 @@ fun NovelFormScreen(
     // Estados para chips de géneros y etiquetas
     var showGenreDropdown by remember { mutableStateOf(false) }
     var showTagDropdown by remember { mutableStateOf(false) }
-
-    // Cargar novela para edición si se proporciona
-    LaunchedEffect(novel) {
-        novel?.let { viewModel.loadNovelForEditing(it) }
-    }
 
     // Inicializar con username actual
     LaunchedEffect(Unit) {
@@ -84,7 +106,11 @@ fun NovelFormScreen(
                 modifier = Modifier
                     .size(width = 120.dp, height = 180.dp)
                     .clip(MaterialTheme.shapes.medium),
-                onClick = { imagePickerLauncher.launch("image/*") }
+                onClick = {
+                    if (!isLoading) {
+                        imagePickerLauncher.launch("image/*")
+                    }
+                }
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -123,7 +149,8 @@ fun NovelFormScreen(
                                 Text(
                                     "Toca para agregar portada",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -142,10 +169,7 @@ fun NovelFormScreen(
                     text = if (novelForm.title.isNotBlank()) novelForm.title else "Título de la novela",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (novelForm.title.isNotBlank())
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     "Autor: ${novelForm.writerName}",
@@ -172,7 +196,8 @@ fun NovelFormScreen(
             onValueChange = viewModel::updateTitle,
             label = { Text("Título") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -185,7 +210,8 @@ fun NovelFormScreen(
                 .fillMaxWidth()
                 .height(120.dp),
             maxLines = 5,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -204,9 +230,14 @@ fun NovelFormScreen(
             ) {
                 novelForm.genres.forEach { genre ->
                     FilterChip(
-                        onClick = { viewModel.removeGenre(genre) },
+                        onClick = {
+                            if (!isLoading) {
+                                viewModel.removeGenre(genre)
+                            }
+                        },
                         label = { Text(genre) },
                         selected = true,
+                        enabled = !isLoading,
                         trailingIcon = {
                             Icon(
                                 Icons.Default.Close,
@@ -221,7 +252,11 @@ fun NovelFormScreen(
 
         ExposedDropdownMenuBox(
             expanded = showGenreDropdown,
-            onExpandedChange = { showGenreDropdown = !showGenreDropdown }
+            onExpandedChange = {
+                if (!isLoading) {
+                    showGenreDropdown = !showGenreDropdown
+                }
+            }
         ) {
             OutlinedTextField(
                 value = "",
@@ -231,7 +266,8 @@ fun NovelFormScreen(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showGenreDropdown) },
                 modifier = Modifier
                     .menuAnchor()
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                enabled = !isLoading
             )
 
             ExposedDropdownMenu(
@@ -267,9 +303,14 @@ fun NovelFormScreen(
             ) {
                 novelForm.tags.forEach { tag ->
                     FilterChip(
-                        onClick = { viewModel.removeTag(tag) },
+                        onClick = {
+                            if (!isLoading) {
+                                viewModel.removeTag(tag)
+                            }
+                        },
                         label = { Text(tag) },
                         selected = true,
+                        enabled = !isLoading,
                         trailingIcon = {
                             Icon(
                                 Icons.Default.Close,
@@ -285,7 +326,11 @@ fun NovelFormScreen(
         // Agregar etiquetas
         ExposedDropdownMenuBox(
             expanded = showTagDropdown,
-            onExpandedChange = { showTagDropdown = !showTagDropdown }
+            onExpandedChange = {
+                if (!isLoading) {
+                    showTagDropdown = !showTagDropdown
+                }
+            }
         ) {
             OutlinedTextField(
                 value = "",
@@ -295,7 +340,8 @@ fun NovelFormScreen(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTagDropdown) },
                 modifier = Modifier
                     .menuAnchor()
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                enabled = !isLoading
             )
 
             ExposedDropdownMenu(
@@ -331,14 +377,21 @@ fun NovelFormScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        if (viewModel.saveNovel(context)) {
-                            onSaveSuccess()
+                    if (!isSaveInProgress && !isLoading) {
+                        isSaveInProgress = true
+                        scope.launch {
+                            try {
+                                if (viewModel.saveNovel(context)) {
+                                    onSaveSuccess()
+                                }
+                            } finally {
+                                isSaveInProgress = false
+                            }
                         }
                     }
                 },
                 modifier = Modifier.weight(1f),
-                enabled = viewModel.isFormValid() && !isLoading
+                enabled = viewModel.isFormValid() && !isLoading && !isSaveInProgress
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

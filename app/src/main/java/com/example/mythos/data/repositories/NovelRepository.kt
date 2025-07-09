@@ -146,5 +146,4 @@ class NovelRepository {
 
         return response.body()
     }
-
 }

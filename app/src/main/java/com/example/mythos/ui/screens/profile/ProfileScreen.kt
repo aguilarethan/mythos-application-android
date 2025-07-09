@@ -3,6 +3,7 @@ package com.example.mythos.ui.screens.profile
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -14,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.mythos.data.dtos.AccountDto
 import com.example.mythos.data.managers.AccountManager
 
@@ -72,7 +76,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            ProfileContent(account = currentAccount)
         }
     }
 }
@@ -83,24 +86,35 @@ private fun ProfileHeader(account: AccountDto?) {
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = account?.username ?: "Usuario",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://pbs.twimg.com/profile_images/1593304942210478080/TUYae5z7_400x400.jpg")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
             )
-            Text(
-                text = account?.email ?: "email@ejemplo.com",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (account?.role != null) {
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
                 Text(
-                    text = "Rol: ${account.role}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    text = account?.username ?: "Usuario",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = account?.email ?: "email@ejemplo.com",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -197,34 +211,6 @@ private fun MenuOption(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfileContent(account: AccountDto?) {
-    // Aquí puedes agregar el resto del contenido del perfil
-    // como estadísticas, configuraciones, etc.
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Información de la cuenta",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // Agregar más información del perfil según sea necesario
-            Text(
-                text = "Aquí puedes agregar más información del perfil",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

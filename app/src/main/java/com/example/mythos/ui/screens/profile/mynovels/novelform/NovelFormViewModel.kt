@@ -17,11 +17,20 @@ class NovelFormViewModel : ViewModel() {
 
     private val novelRepository = NovelRepository()
 
+    fun initializeForEditing(novel: NovelFormDto) {
+        _novelForm.update {
+            novel.copy(
+                writerAccountId = AccountManager.getCurrentUserId().toString(),
+                writerName = AccountManager.getCurrentUserName().toString()
+            )
+        }
+    }
+
     private val _novelForm = MutableStateFlow(
         NovelFormDto(
             id = null,
             writerAccountId = AccountManager.getCurrentUserId().toString(),
-            writerName = AccountManager.getCurrentUserName().toString(), // Se establecerá desde AccountManager
+            writerName = AccountManager.getCurrentUserName().toString(),
             title = "",
             description = "",
             genres = emptyList(),
@@ -45,6 +54,9 @@ class NovelFormViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    // Flag para evitar múltiples envíos
+    private var isSaving = false
+
     private val _availableGenres = MutableStateFlow(
         listOf(
             "Acción", "Aventura", "Romance", "Fantasía", "Ciencia Ficción",
@@ -54,7 +66,6 @@ class NovelFormViewModel : ViewModel() {
     )
     val availableGenres = _availableGenres.asStateFlow()
 
-    // Lista de etiquetas predefinidas
     private val _availableTags = MutableStateFlow(
         listOf(
             "Protagonista fuerte", "Magia", "Sistema", "Reencarnación",
@@ -114,51 +125,93 @@ class NovelFormViewModel : ViewModel() {
         } ?: throw IllegalArgumentException("No se pudo abrir el URI: $uri")
     }
 
-
     suspend fun saveNovel(context: Context): Boolean {
+        // Prevenir múltiples envíos simultáneos
+        if (isSaving) {
+            return false
+        }
+
+        isSaving = true
         _isLoading.update { true }
+        _errorMessage.update { null } // Limpiar errores previos
 
         return try {
-            if (!isFormValid()) throw Exception("Por favor completa todos los campos requeridos.")
+            if (!isFormValid()) {
+                throw Exception("Por favor completa todos los campos requeridos.")
+            }
 
+            val currentForm = _novelForm.value
             val imageUri = _selectedImageUri.value
 
+            // Subir imagen solo si hay una nueva seleccionada
             val coverImageUrl = if (imageUri != null) {
                 val imageBytes = readBytesFromUri(context, imageUri)
-
                 novelRepository.uploadCoverImage(
                     coverImageBytes = imageBytes,
                     fileName = "cover_${System.currentTimeMillis()}.jpg"
                 ).trim('"')
             } else {
-                _novelForm.value.coverImageUrl.trim('"')
+                currentForm.coverImageUrl.trim('"')
             }
 
-            val novelToSave = _novelForm.value.copy(
+            val novelToSave = currentForm.copy(
                 coverImageUrl = coverImageUrl
             )
 
-            if (novelToSave.id == null) {
+            // Ejecutar una sola operación según el caso
+            val result = if (novelToSave.id == null) {
+                // Crear nueva novela
                 novelRepository.createNovel(novelToSave)
             } else {
+                // Actualizar novela existente
                 novelRepository.updateNovel(novelToSave.id.toString(), novelToSave)
             }
 
+            // Limpiar la imagen seleccionada después de guardar exitosamente
+            _selectedImageUri.update { null }
+
             true
         } catch (e: Exception) {
-            _errorMessage.value = e.message ?: "Error desconocido"
+            _errorMessage.update { e.message ?: "Error desconocido" }
             false
         } finally {
             _isLoading.update { false }
+            isSaving = false // Liberar el flag
         }
     }
-
-
 
     fun isFormValid(): Boolean {
         val form = _novelForm.value
         return form.title.isNotBlank() &&
                 form.description.isNotBlank() &&
                 form.genres.isNotEmpty()
+    }
+
+    // Método para limpiar errores manualmente si es necesario
+    fun clearError() {
+        _errorMessage.update { null }
+    }
+
+    // Método para resetear el formulario
+    fun resetForm() {
+        _novelForm.update {
+            NovelFormDto(
+                id = null,
+                writerAccountId = AccountManager.getCurrentUserId().toString(),
+                writerName = AccountManager.getCurrentUserName().toString(),
+                title = "",
+                description = "",
+                genres = emptyList(),
+                tags = emptyList(),
+                views = 0,
+                isPublic = true,
+                coverImageUrl = "",
+                status = "En curso",
+                createdAt = null,
+                updatedAt = null
+            )
+        }
+        _selectedImageUri.update { null }
+        _errorMessage.update { null }
     }
 }

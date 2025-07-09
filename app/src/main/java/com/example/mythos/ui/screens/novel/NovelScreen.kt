@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,12 +17,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mythos.data.dtos.NovelDetailDto
+import com.example.mythos.data.dtos.NovelFormDto
+import com.example.mythos.data.managers.AccountManager
+import com.example.mythos.data.managers.ChapterManager
+import com.example.mythos.data.managers.NovelManager
 import com.example.mythos.ui.components.ChapterCard
 import com.example.mythos.ui.components.ChapterStatus
 import com.example.mythos.ui.navigation.Routes
+import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormScreen
+import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormViewModel
 
 @Composable
 fun NovelScreen(
@@ -28,6 +38,7 @@ fun NovelScreen(
     navController: NavController,
     onChapterClick: (String) -> Unit
 ) {
+
     val novel by viewModel.novel.collectAsState()
     val chapters by viewModel.chapters.collectAsState()
     val purchased = viewModel.purchasedChapters.collectAsState().value
@@ -73,6 +84,49 @@ fun NovelScreen(
                         "Vistas: ${novel.views}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+
+                    if (AccountManager.getCurrentUserId() == novel.writerAccountId) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            IconButton(onClick = {
+                                val novelFormDto = NovelFormDto(
+                                    id = novel.id,
+                                    writerAccountId = novel.writerAccountId,
+                                    writerName = novel.writerName,
+                                    title = novel.title,
+                                    description = novel.description,
+                                    genres = novel.genres,
+                                    tags = novel.tags,
+                                    views = novel.views,
+                                    isPublic = novel.isPublic,
+                                    coverImageUrl = novel.coverImageUrl,
+                                    status = novel.status,
+                                    createdAt = novel.createdAt,
+                                    updatedAt = novel.updatedAt
+                                )
+
+                                NovelManager.setNovelForEditing(novelFormDto)
+
+                                navController.navigate(Routes.NOVEL_FORM)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar novela"
+                                )
+                            }
+                            IconButton(onClick = {
+                                ChapterManager.setNovelForChapter(novel.id)
+                                navController.navigate(Routes.CHAPTER_FORM)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Agregar capítulo"
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
