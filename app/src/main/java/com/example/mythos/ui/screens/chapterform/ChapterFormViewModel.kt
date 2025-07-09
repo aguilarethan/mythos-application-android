@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
 class ChapterFormViewModel : ViewModel() {
 
     private val chapterRepository = ChapterRepository()
@@ -38,11 +37,22 @@ class ChapterFormViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 chapterRepository.saveChapter(_chapterForm.value)
+                // Limpiar campos después de guardar
+                clearForm()
                 onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
+                // Aún así llamamos onSuccess para mantener el comportamiento original
+                onSuccess()
             }
-            onSuccess()
+        }
+    }
+
+    private fun clearForm() {
+        _chapterForm.update {
+            ChapterFormDto(
+                novelId = ChapterManager.currentNovelIdForChapter.toString()
+            )
         }
     }
 }

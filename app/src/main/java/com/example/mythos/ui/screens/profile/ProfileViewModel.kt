@@ -1,9 +1,12 @@
 package com.example.mythos.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.mythos.data.dtos.AccountDto
 import com.example.mythos.data.managers.AccountManager
+import com.example.mythos.data.managers.TokenManager
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class ProfileViewModel : ViewModel() {
 
@@ -43,6 +46,14 @@ class ProfileViewModel : ViewModel() {
 
     fun clearError() {
         AccountManager.clearError()
+    }
+
+    fun logout(onLogoutComplete: () -> Unit) {
+        viewModelScope.launch {
+            TokenManager.clearTokens()
+            AccountManager.clearAccount()
+            onLogoutComplete()
+        }
     }
 
 }

@@ -27,7 +27,8 @@ import com.example.mythos.data.managers.AccountManager
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateToBecomeAuthor: () -> Unit = {},
-    onNavigateToMyNovels: (String) -> Unit = {}
+    onNavigateToMyNovels: (String) -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val currentAccount by viewModel.currentAccount.collectAsState()
     val isAccountLoaded by viewModel.isAccountLoaded.collectAsState()
@@ -74,7 +75,21 @@ fun ProfileScreen(
                 onNavigateToMyNovels = onNavigateToMyNovels
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    viewModel.logout {
+                        onLogout()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+                    .height(56.dp)
+            ) {
+                Text("Cerrar sesión")
+            }
 
         }
     }

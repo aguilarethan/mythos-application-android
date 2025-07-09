@@ -5,6 +5,7 @@ import com.example.mythos.data.dtos.NovelDetailDto
 import com.example.mythos.data.dtos.NovelFormDto
 import com.example.mythos.data.network.NetworkModule
 import com.example.mythos.data.dtos.NovelPreviewDto
+import com.example.mythos.data.dtos.UpdateNovelDto
 import com.example.mythos.data.managers.TokenManager
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -47,6 +48,23 @@ class NovelRepository {
 
         if (!response.status.isSuccess()) {
             throw Exception("Error al obtener novelas: ${response.status}")
+        }
+
+        return response.body()
+    }
+
+    suspend fun getNovelsByTitleMatch(title: String): List<NovelPreviewDto> {
+        val accessToken = TokenManager.getAccessToken()
+            ?: throw Exception("No hay token de acceso disponible")
+
+        val response: HttpResponse = nodeClient.get("${NetworkModule.NODE_BASE_URL}/novels/search/title/$title") {
+            accept(ContentType.Application.Json)
+            headers {
+                append("Authorization", "Bearer $accessToken")
+            }
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("No se pudieron recuperar las novelas del escritor")
         }
 
         return response.body()
@@ -127,7 +145,17 @@ class NovelRepository {
         return response.body()
     }
 
-    suspend fun updateNovel(id: String, request: NovelFormDto): String {
+    suspend fun updateNovel(id: String, data: NovelFormDto): String {
+
+        val request = UpdateNovelDto(
+            writerAccountId = data.writerAccountId.toString(),
+            writerName = data.writerName,
+            title = data.title,
+            description = data.description,
+            genres = data.genres,
+            tags = data.tags,
+            coverImageUrl = data.coverImageUrl.trim('"')
+        )
         val accessToken = TokenManager.getAccessToken()
             ?: throw Exception("No hay token de acceso disponible")
 

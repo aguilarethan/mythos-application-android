@@ -10,6 +10,8 @@ import com.example.mythos.ui.screens.home.HomeScreen
 import com.example.mythos.ui.screens.home.HomeViewModel
 import com.example.mythos.ui.screens.profile.ProfileScreen
 import com.example.mythos.ui.screens.profile.ProfileViewModel
+import com.example.mythos.ui.screens.search.SearchScreen
+import com.example.mythos.ui.screens.search.SearchViewModel
 
 
 /**
@@ -48,16 +50,15 @@ fun MainScreenContainer(
                     )
                 }
 
-                /*Routes.SEARCH -> {
-                    // Aquí puedes inyectar el ViewModel cuando lo tengas
-                    // val searchViewModel: SearchViewModel = viewModel()
+                Routes.SEARCH -> {
+                    val searchViewModel: SearchViewModel = viewModel()
                     SearchScreen(
-                        // viewModel = searchViewModel,
+                        viewModel = searchViewModel,
                         onNovelClick = { novelId ->
                             navController.navigate(Routes.novelWithId(novelId))
                         }
                     )
-                }*/
+                }
 
                 Routes.PROFILE -> {
                     val profileViewModel: ProfileViewModel = viewModel()
@@ -68,6 +69,11 @@ fun MainScreenContainer(
                         },
                         onNavigateToMyNovels = { userId ->
                             navController.navigate(Routes.myNovelsWithId(userId))
+                        },
+                        onLogout = {
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(Routes.PROFILE) { inclusive = true }
+                            }
                         }
                     )
                 }

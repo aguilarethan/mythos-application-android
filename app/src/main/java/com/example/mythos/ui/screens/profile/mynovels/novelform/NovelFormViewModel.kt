@@ -1,217 +1,225 @@
 package com.example.mythos.ui.screens.profile.mynovels.novelform
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.mythos.data.dtos.NovelFormDto
 import com.example.mythos.data.managers.AccountManager
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import android.content.Context
-import androidx.lifecycle.viewModelScope
+import com.example.mythos.data.managers.NovelManager
 import com.example.mythos.data.repositories.NovelRepository
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class NovelFormViewModel : ViewModel() {
 
     private val novelRepository = NovelRepository()
 
-    fun initializeForEditing(novel: NovelFormDto) {
-        _novelForm.update {
-            novel.copy(
-                writerAccountId = AccountManager.getCurrentUserId().toString(),
-                writerName = AccountManager.getCurrentUserName().toString()
-            )
+    // Estados principales
+    private val _uiState = MutableStateFlow(NovelFormUiState())
+    val uiState = _uiState.asStateFlow()
+
+    // Datos estáticos
+    private val availableGenres = listOf(
+        "Acción", "Aventura", "Romance", "Terror", "Drama", "Fantasía", "Fantasía oscura", "Ciencia ficción",
+        "Comedia", "Misterio", "Misterio sobrenatural", "Cultivo", "Superheroes"
+    )
+
+    private val availableTags = listOf(
+        "Horror cósmico", "Ocultismo", "Sistema de pociones", "Protagonista inteligente", "Sociedades secretas",
+        "Mundo detallado", "Conspiraciones", "Locura", "Terror psicológico", "Progresión de poder", "Dimensiones",
+        "Sistema genético", "Cultivo moderno", "Torneos", "Tecnología avanzada", "Batallas épicas", "Mundo cruel",
+        "Ascenso imparable", "Bucle temporal", "Anti héroe", "Superpoderes", "Optimización", "Distopía",
+        "Narrativa tipo juego", "Humor negro", "Protagonista sarcastico", "Megacorporaciones"
+    )
+
+    // Propiedades derivadas
+    val availableGenresForSelection = _uiState.map { state ->
+        availableGenres.filter { it !in state.novelForm.genres }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    val availableTagsForSelection = _uiState.map { state ->
+        availableTags.filter { it !in state.novelForm.tags }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    val isFormValid = _uiState.map { state ->
+        state.novelForm.title.isNotBlank() &&
+                state.novelForm.description.isNotBlank() &&
+                state.novelForm.genres.isNotEmpty()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    val isEditingMode = _uiState.map { state ->
+        state.novelForm.id != null
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    init {
+        initializeForm()
+    }
+
+    private fun initializeForm() {
+        val currentUser = AccountManager.getCurrentUserId()?.toString() ?: ""
+        val currentUserName = AccountManager.getCurrentUserName() ?: "Usuario"
+
+        val novelToEdit = NovelManager.currentNovelForEditing
+
+        val initialForm = novelToEdit?.copy(
+            writerAccountId = currentUser,
+            writerName = currentUserName
+        ) ?: createEmptyForm(currentUser, currentUserName)
+
+        _uiState.update {
+            it.copy(novelForm = initialForm)
         }
     }
 
-    private val _novelForm = MutableStateFlow(
-        NovelFormDto(
-            id = null,
-            writerAccountId = AccountManager.getCurrentUserId().toString(),
-            writerName = AccountManager.getCurrentUserName().toString(),
-            title = "",
-            description = "",
-            genres = emptyList(),
-            tags = emptyList(),
-            views = 0,
-            isPublic = true,
-            coverImageUrl = "",
-            status = "En curso",
-            createdAt = null,
-            updatedAt = null
-        )
+    private fun createEmptyForm(userId: String, userName: String) = NovelFormDto(
+        id = null,
+        writerAccountId = userId,
+        writerName = userName,
+        title = "",
+        description = "",
+        genres = emptyList(),
+        tags = emptyList(),
+        views = 0,
+        isPublic = true,
+        coverImageUrl = "",
+        status = "En curso",
+        createdAt = null,
+        updatedAt = null
     )
-    val novelForm = _novelForm.asStateFlow()
 
-    private val _selectedImageUri = MutableStateFlow<Uri?>(null)
-    val selectedImageUri = _selectedImageUri.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
-
-    // Flag para evitar múltiples envíos
-    private var isSaving = false
-
-    private val _availableGenres = MutableStateFlow(
-        listOf(
-            "Acción", "Aventura", "Romance", "Fantasía", "Ciencia Ficción",
-            "Misterio", "Terror", "Drama", "Comedia", "Histórico",
-            "Thriller", "Sobrenatural", "Slice of Life", "Psicológico"
-        )
-    )
-    val availableGenres = _availableGenres.asStateFlow()
-
-    private val _availableTags = MutableStateFlow(
-        listOf(
-            "Protagonista fuerte", "Magia", "Sistema", "Reencarnación",
-            "Mundo alternativo", "Poderes", "Escuela", "Trabajo",
-            "Familia", "Amistad", "Venganza", "Supervivencia"
-        )
-    )
-    val availableTags = _availableTags.asStateFlow()
-
-    fun loadNovelForEditing(novel: NovelFormDto) {
-        _novelForm.update { novel }
-    }
-
+    // Acciones de la UI
     fun updateTitle(title: String) {
-        _novelForm.update { it.copy(title = title) }
+        _uiState.update {
+            it.copy(novelForm = it.novelForm.copy(title = title))
+        }
     }
 
     fun updateDescription(description: String) {
-        _novelForm.update { it.copy(description = description) }
-    }
-
-    fun initializeWithUserName(userName: String) {
-        _novelForm.update { it.copy(writerName = userName) }
-    }
-
-    fun addGenre(genre: String) {
-        _novelForm.update {
-            it.copy(genres = (it.genres + genre).distinct())
-        }
-    }
-
-    fun removeGenre(genre: String) {
-        _novelForm.update {
-            it.copy(genres = it.genres.filter { g -> g != genre })
-        }
-    }
-
-    fun addTag(tag: String) {
-        _novelForm.update {
-            it.copy(tags = (it.tags + tag).distinct())
-        }
-    }
-
-    fun removeTag(tag: String) {
-        _novelForm.update {
-            it.copy(tags = it.tags.filter { t -> t != tag })
+        _uiState.update {
+            it.copy(novelForm = it.novelForm.copy(description = description))
         }
     }
 
     fun updateSelectedImageUri(uri: Uri?) {
-        _selectedImageUri.update { uri }
+        _uiState.update { it.copy(selectedImageUri = uri) }
     }
 
-    fun readBytesFromUri(context: Context, uri: Uri): ByteArray {
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            return inputStream.readBytes()
-        } ?: throw IllegalArgumentException("No se pudo abrir el URI: $uri")
-    }
-
-    suspend fun saveNovel(context: Context): Boolean {
-        // Prevenir múltiples envíos simultáneos
-        if (isSaving) {
-            return false
+    fun addGenre(genre: String) {
+        _uiState.update { state ->
+            val updatedGenres = (state.novelForm.genres + genre).distinct()
+            state.copy(novelForm = state.novelForm.copy(genres = updatedGenres))
         }
+    }
 
-        isSaving = true
-        _isLoading.update { true }
-        _errorMessage.update { null } // Limpiar errores previos
+    fun removeGenre(genre: String) {
+        _uiState.update { state ->
+            val updatedGenres = state.novelForm.genres.filter { it != genre }
+            state.copy(novelForm = state.novelForm.copy(genres = updatedGenres))
+        }
+    }
 
-        return try {
-            if (!isFormValid()) {
-                throw Exception("Por favor completa todos los campos requeridos.")
+    fun addTag(tag: String) {
+        _uiState.update { state ->
+            val updatedTags = (state.novelForm.tags + tag).distinct()
+            state.copy(novelForm = state.novelForm.copy(tags = updatedTags))
+        }
+    }
+
+    fun removeTag(tag: String) {
+        _uiState.update { state ->
+            val updatedTags = state.novelForm.tags.filter { it != tag }
+            state.copy(novelForm = state.novelForm.copy(tags = updatedTags))
+        }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun saveNovel(context: Context, onSuccess: () -> Unit) {
+        if (_uiState.value.isSaving) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+
+            try {
+                val currentState = _uiState.value
+                val coverImageUrl = uploadImageIfNeeded(context, currentState)
+
+                val novelToSave = currentState.novelForm.copy(
+                    coverImageUrl = coverImageUrl
+                )
+
+                if (novelToSave.id == null) {
+                    novelRepository.createNovel(novelToSave)
+                } else {
+                    novelRepository.updateNovel(novelToSave.id.toString(), novelToSave)
+                }
+
+                // Limpiar imagen seleccionada después del éxito
+                _uiState.update { it.copy(selectedImageUri = null) }
+                onSuccess()
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = e.message ?: "Error desconocido")
+                }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
             }
+        }
+    }
 
-            val currentForm = _novelForm.value
-            val imageUri = _selectedImageUri.value
-
-            // Subir imagen solo si hay una nueva seleccionada
-            val coverImageUrl = if (imageUri != null) {
-                val imageBytes = readBytesFromUri(context, imageUri)
+    private suspend fun uploadImageIfNeeded(context: Context, state: NovelFormUiState): String {
+        return when {
+            state.selectedImageUri != null -> {
+                val imageBytes = readBytesFromUri(context, state.selectedImageUri)
                 novelRepository.uploadCoverImage(
                     coverImageBytes = imageBytes,
                     fileName = "cover_${System.currentTimeMillis()}.jpg"
                 ).trim('"')
-            } else {
-                currentForm.coverImageUrl.trim('"')
             }
-
-            val novelToSave = currentForm.copy(
-                coverImageUrl = coverImageUrl
-            )
-
-            // Ejecutar una sola operación según el caso
-            val result = if (novelToSave.id == null) {
-                // Crear nueva novela
-                novelRepository.createNovel(novelToSave)
-            } else {
-                // Actualizar novela existente
-                novelRepository.updateNovel(novelToSave.id.toString(), novelToSave)
-            }
-
-            // Limpiar la imagen seleccionada después de guardar exitosamente
-            _selectedImageUri.update { null }
-
-            true
-        } catch (e: Exception) {
-            _errorMessage.update { e.message ?: "Error desconocido" }
-            false
-        } finally {
-            _isLoading.update { false }
-            isSaving = false // Liberar el flag
+            else -> state.novelForm.coverImageUrl.trim('"')
         }
     }
 
-    fun isFormValid(): Boolean {
-        val form = _novelForm.value
-        return form.title.isNotBlank() &&
-                form.description.isNotBlank() &&
-                form.genres.isNotEmpty()
+    private fun readBytesFromUri(context: Context, uri: Uri): ByteArray {
+        return context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            inputStream.readBytes()
+        } ?: throw IllegalArgumentException("No se pudo abrir el URI: $uri")
     }
 
-    // Método para limpiar errores manualmente si es necesario
-    fun clearError() {
-        _errorMessage.update { null }
-    }
-
-    // Método para resetear el formulario
     fun resetForm() {
-        _novelForm.update {
-            NovelFormDto(
-                id = null,
-                writerAccountId = AccountManager.getCurrentUserId().toString(),
-                writerName = AccountManager.getCurrentUserName().toString(),
-                title = "",
-                description = "",
-                genres = emptyList(),
-                tags = emptyList(),
-                views = 0,
-                isPublic = true,
-                coverImageUrl = "",
-                status = "En curso",
-                createdAt = null,
-                updatedAt = null
+        val currentUser = AccountManager.getCurrentUserId()?.toString() ?: ""
+        val currentUserName = AccountManager.getCurrentUserName() ?: "Usuario"
+
+        _uiState.update {
+            NovelFormUiState(
+                novelForm = createEmptyForm(currentUser, currentUserName)
             )
         }
-        _selectedImageUri.update { null }
-        _errorMessage.update { null }
     }
 }
+
+// Estado consolidado de la UI
+data class NovelFormUiState(
+    val novelForm: NovelFormDto = NovelFormDto(
+        id = null,
+        writerAccountId = "",
+        writerName = "",
+        title = "",
+        description = "",
+        genres = emptyList(),
+        tags = emptyList(),
+        views = 0,
+        isPublic = true,
+        coverImageUrl = "",
+        status = "En curso",
+        createdAt = null,
+        updatedAt = null
+    ),
+    val selectedImageUri: Uri? = null,
+    val isSaving: Boolean = false,
+    val errorMessage: String? = null
+)
