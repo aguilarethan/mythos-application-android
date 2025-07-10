@@ -1,5 +1,7 @@
 package com.example.mythos.ui.screens.novel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,10 +29,12 @@ import com.example.mythos.data.managers.ChapterManager
 import com.example.mythos.data.managers.NovelManager
 import com.example.mythos.ui.components.ChapterCard
 import com.example.mythos.ui.components.ChapterStatus
+import com.example.mythos.ui.components.reviews.ReviewsContainer
 import com.example.mythos.ui.navigation.Routes
 import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormScreen
 import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NovelScreen(
     viewModel: NovelViewModel,
@@ -132,7 +136,7 @@ fun NovelScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val tabs = listOf("Información", "Capítulos")
+            val tabs = listOf("Información", "Capítulos", "Reseñas")
             TabRow(
                 selectedTabIndex = selectedTabIndex
             ) {
@@ -211,6 +215,10 @@ fun NovelScreen(
                             }
                         }
                     }
+                }
+
+                2 -> {
+                    ReviewsContainer(novelId)
                 }
             }
 
