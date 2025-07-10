@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.StackedLineChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateToBecomeAuthor: () -> Unit = {},
     onNavigateToMyNovels: (String) -> Unit = {},
+    onNavigateToMyNovelsStats: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     val currentAccount by viewModel.currentAccount.collectAsState()
@@ -72,7 +74,8 @@ fun ProfileScreen(
                 viewModel = viewModel,
                 account = currentAccount,
                 onNavigateToBecomeAuthor = onNavigateToBecomeAuthor,
-                onNavigateToMyNovels = onNavigateToMyNovels
+                onNavigateToMyNovels = onNavigateToMyNovels,
+                onNavigateToMyNovelsStats = onNavigateToMyNovelsStats,
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -141,7 +144,8 @@ private fun ProfileMenuSection(
     viewModel: ProfileViewModel,
     account: AccountDto?,
     onNavigateToBecomeAuthor: () -> Unit,
-    onNavigateToMyNovels: (String) -> Unit
+    onNavigateToMyNovels: (String) -> Unit,
+    onNavigateToMyNovelsStats: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -162,6 +166,15 @@ private fun ProfileMenuSection(
                             onNavigateToMyNovels(userId)
                         }
                     }
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                MenuOption(
+                    icon = Icons.Default.StackedLineChart,
+                    title = "Estadísticas de mis novelas",
+                    subtitle = "Visualiza las compras que se han hecho por tus novelas",
+                    onClick = onNavigateToMyNovelsStats
                 )
             } else {
                 // Si no es autor, mostrar "Convertirse en Autor"

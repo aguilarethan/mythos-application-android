@@ -30,6 +30,8 @@ import com.example.mythos.ui.screens.profile.mynovels.MyNovelsScreen
 import com.example.mythos.ui.screens.profile.mynovels.MyNovelsViewModel
 import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormScreen
 import com.example.mythos.ui.screens.profile.mynovels.novelform.NovelFormViewModel
+import com.example.mythos.ui.screens.profile.novelstats.NovelStatsScreen
+import com.example.mythos.ui.screens.profile.novelstats.NovelStatsViewModel
 
 
 @Composable
@@ -171,6 +173,13 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             val chapterFormViewModel: ChapterFormViewModel = viewModel()
             ChapterFormScreen(
                 viewModel = chapterFormViewModel,
+            )
+        }
+
+        composable(Routes.NOVEL_STATS) {
+            val novelStatsViewModel: NovelStatsViewModel = viewModel()
+            NovelStatsScreen(
+                viewModel = novelStatsViewModel
             )
         }
 

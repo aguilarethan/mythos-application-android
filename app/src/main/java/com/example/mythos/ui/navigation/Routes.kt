@@ -7,6 +7,7 @@ object Routes {
     const val SEARCH = "search"
     const val PROFILE = "profile"
     const val BECOME_WRITER = "profile/becomewriter"
+    const val NOVEL_STATS = "profile/novelstats"
     const val NOVEL_FORM = "profile/mynovels/novelform"
     const val CHAPTER_FORM = "novel/chapterform"
 

@@ -70,6 +70,9 @@ fun MainScreenContainer(
                         onNavigateToMyNovels = { userId ->
                             navController.navigate(Routes.myNovelsWithId(userId))
                         },
+                        onNavigateToMyNovelsStats = {
+                            navController.navigate(Routes.NOVEL_STATS)
+                        },
                         onLogout = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(Routes.PROFILE) { inclusive = true }
